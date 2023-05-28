@@ -72,18 +72,8 @@ int readSoilMoisture() {
   return moisture;
 }
 
-void sendDataToMatrix(uint8_t address, uint8_t value) {
-  digitalWrite(CS, LOW);
-  SPI.transfer(address); // Send address.
-  SPI.transfer(value); // Send the value.
-  digitalWrite(CS, HIGH);
-}
-
 void setup() {
-  Serial.begin(9600); // Only for debugging purposes
-
   /*** 8x8 Matrix ***/
-
   lc.shutdown(0,false);
   /* Set the brightness to a medium values */
   lc.setIntensity(0,8);
@@ -109,12 +99,9 @@ void loop() {
   int waterLevel = readWaterLevel();
 
   if (waterLevel < WATER_LEVEL_THRESHOLD) {
-    // Display a warning on the matrix
-    Serial.print("Water Level: ");
-    Serial.println(waterLevel);
+    // Display a warning on the matrix and keep the pump turned off
 
     digitalWrite(PUMP_POWER, LOW);
-    Serial.println("Pump turned OFF");
 
     for (int i = 0; i < 8; i++) {
       lc.setRow(0, i, waterDrop[i]);
@@ -123,8 +110,6 @@ void loop() {
     delay(300);
   } else {
     int soilMoisture = readSoilMoisture();
-    Serial.print("Soil moisture: ");
-    Serial.println(soilMoisture);
 
     if (soilMoisture > MOISTURE_THRESHOLD) {
       // Turn on the pump, display an animation with a beer on the matrix
@@ -142,13 +127,10 @@ void loop() {
       delay(200);
 
       digitalWrite(PUMP_POWER, HIGH);
-
-      Serial.println("Pump turned ON"); // for debugging purposes
     } else {
       // Turn off the pump, display a heart on the matrix, put the board to sleep
 
       digitalWrite(PUMP_POWER, LOW);
-      Serial.println("Pump turned OFF");
 
       for (int i = 0; i < 8; i++) {
         lc.setRow(0, i, heart[i]);
